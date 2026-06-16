@@ -140,30 +140,30 @@ description: "Task list template for feature implementation"
 
 > **NOTE: Write these tests FIRST, ensure they FAIL before implementing review/apply**
 
-- [ ] T016 [P] [US3] Write failing integration tests for `review_issue()` in `tests/integration/test_triager.py`:
+- [x] T016 [P] [US3] Write failing integration tests for `review_issue()` in `tests/integration/test_triager.py`:
   mock `builtins.input` to return `"a"` → ReviewDecision.approved True, fields mirror proposal;
   mock input to return `"s"` → ReviewDecision.approved False;
   mock input to return `"q"` → `SystemExit` raised (or equivalent quit signal);
   mock input for `"e"` path → prompt per-field edits, blank = keep original
-- [ ] T017 [P] [US3] Write failing integration tests for `apply_decision()` in `tests/integration/test_triager.py`:
+- [x] T017 [P] [US3] Write failing integration tests for `apply_decision()` in `tests/integration/test_triager.py`:
   approved=True, close_issue=True, post_comment="text" → assert `client.close_issue()` and `client.post_comment()` called;
   approved=True, close_issue=False → assert `client.close_issue()` NOT called;
   approved=False → assert NO `client.*` write methods called
 
 ### Implementation for User Story 3
 
-- [ ] T018 [US3] Add `review_issue(state: State) -> ReviewDecision` to `src/agent/triager.py`:
+- [x] T018 [US3] Add `review_issue(state: State) -> ReviewDecision` to `src/agent/triager.py`:
   render `review_template.md.jinja2` with proposal fields (reuse existing Jinja2 template);
   print rendered review + `[a]ccept [e]dit [s]kip [q]uit` prompt;
   parse input: `a` → approved=True fields from proposal; `e` → per-field edit loop (blank=keep); `s` → approved=False; `q` → `sys.exit(0)`
-- [ ] T019 [US3] Add `apply_decision(decision: ReviewDecision, client: GitHubClient) -> None` to `src/agent/triager.py`:
+- [x] T019 [US3] Add `apply_decision(decision: ReviewDecision, client: GitHubClient) -> None` to `src/agent/triager.py`:
   if not approved: log "Skipped" and return;
   call `client.remove_label()` for each in `decision.remove_labels`;
   call `client.add_label()` for each in `decision.add_labels` (skip any also in remove_labels);
   call `client.post_comment()` if `decision.post_comment`;
   call `client.assign_issue_to_copilot()` if `decision.assign_issue_to_copilot and not decision.close_issue`;
   call `client.close_issue()` if `decision.close_issue`
-- [ ] T020 [US3] Create `src/agent/main.py` — entry point:
+- [x] T020 [US3] Create `src/agent/main.py` — entry point:
   `load_dotenv(override=True)`;
   validate `GITHUB_TOKEN` env var present (raise with clear message if missing);
   instantiate `GitHubClient()`;
@@ -171,7 +171,7 @@ description: "Task list template for feature implementation"
   `asyncio.run(triager.run(state, client))` — `run()` calls all 5 phases in sequence;
   wrap in `try/except RuntimeError` → print `f"Error: {e}"` and `sys.exit(1)`;
   no `if __name__ == "__main__"` guard needed (invoked via `uv run python src/agent/main.py`)
-- [ ] T021 [US3] Update `run()` in `src/agent/triager.py` to call all phases:
+- [x] T021 [US3] Update `run()` in `src/agent/triager.py` to call all phases:
   `select_stale_issue → research_issue → propose_action → review_issue → apply_decision`
 
 **Checkpoint**: `uv run python -m pytest tests/integration/` — all pass → full end-to-end flow verifiable
