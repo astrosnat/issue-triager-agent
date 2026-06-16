@@ -23,9 +23,9 @@ description: "Task list template for feature implementation"
 
 **Purpose**: Remove old dependencies and scaffold new directory structure.
 
-- [ ] T001 Remove `azure-identity`, `langchain`, `langchain-openai`, `langgraph`, `langgraph-sdk` from `[project].dependencies` in `pyproject.toml`; remove `langgraph-cli[inmem]` from `[dependency-groups].dev`
-- [ ] T002 Delete `langgraph.json` (LangGraph dev server config, no longer needed)
-- [ ] T003 [P] Create `tests/unit/__init__.py` and `tests/integration/__init__.py` (empty files)
+- [x] T001 Remove `azure-identity`, `langchain`, `langchain-openai`, `langgraph`, `langgraph-sdk` from `[project].dependencies` in `pyproject.toml`; remove `langgraph-cli[inmem]` from `[dependency-groups].dev`
+- [x] T002 Delete `langgraph.json` (LangGraph dev server config, no longer needed)
+- [x] T003 [P] Create `tests/unit/__init__.py` and `tests/integration/__init__.py` (empty files)
 
 ---
 
