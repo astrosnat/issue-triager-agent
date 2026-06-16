@@ -115,7 +115,7 @@ description: "Task list template for feature implementation"
 
 **Independent Test**: README and pyproject.toml contain no Azure references. Running `uv run python src/agent/main.py` with only `GITHUB_TOKEN` set produces no "missing Azure credential" errors.
 
-- [ ] T014 [P] [US2] Update `README.md`:
+- [x] T014 [P] [US2] Update `README.md`:
   - Remove "Configuring Azure AI models" section entirely
   - Remove "Running the stale issue closer" section (LangGraph dev server)
   - Remove "Agent Inbox setup" section
@@ -124,7 +124,7 @@ description: "Task list template for feature implementation"
   - Update "Running the triager" section: `uv run python src/agent/main.py`
   - Update "Cost estimate" section: subscription cost replaces per-token Azure pricing
   - Keep: "Getting started", "Configuring GitHub authentication", "Developer tasks", "Resources"
-- [ ] T015 [P] [US2] Remove Azure-related env vars from `.env.example` (if file exists); if file does not exist, create `.env.example` with only `GITHUB_TOKEN` and `TARGET_REPO`
+- [x] T015 [P] [US2] Remove Azure-related env vars from `.env.example` (if file exists); if file does not exist, create `.env.example` with only `GITHUB_TOKEN` and `TARGET_REPO`
 
 **Checkpoint**: README has no `azd`, `AZURE_*`, `LANGSMITH_*` references → US2 done
 
