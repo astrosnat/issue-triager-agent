@@ -4,11 +4,11 @@ import sys
 
 from dotenv import load_dotenv
 
-from agent import triager
-from agent.github_client import GitHubClient
-from agent.triager import State
+load_dotenv(override=True)  # must run before agent imports so TARGET_REPO is set
 
-load_dotenv(override=True)
+from agent import triager  # noqa: E402
+from agent.github_client import GitHubClient  # noqa: E402
+from agent.triager import State  # noqa: E402
 
 if not os.getenv("GITHUB_TOKEN"):
     print("Error: GITHUB_TOKEN environment variable is required.", file=sys.stderr)
