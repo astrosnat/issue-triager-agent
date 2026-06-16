@@ -71,9 +71,7 @@ def call_claude(prompt: str, *, timeout: int = 120) -> str:
                 f"Claude CLI not authenticated (exit {result.returncode}). "
                 "Run: claude auth login"
             )
-        raise RuntimeError(
-            f"claude CLI error (exit {result.returncode}): {stderr}"
-        )
+        raise RuntimeError(f"claude CLI error (exit {result.returncode}): {stderr}")
 
     return result.stdout.strip()
 
@@ -209,8 +207,7 @@ def structured_output(prompt: str, schema: type[BaseModel]) -> dict[str, Any]:
             full_prompt = (
                 "Your previous response was not valid JSON. "
                 "Respond ONLY with a valid JSON object matching the schema.\n"
-                f"Schema:\n{schema_json}\n\n"
-                + prompt
+                f"Schema:\n{schema_json}\n\n" + prompt
             )
 
         last_response = call_claude(full_prompt)

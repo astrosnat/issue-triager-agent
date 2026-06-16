@@ -219,13 +219,18 @@ async def research_issue(
 async def propose_action(state: State, client: GitHubClient) -> None:
     """Generate a structured triage proposal from the research summary."""
     assert state.issue is not None, "Issue must be selected before proposal."
-    assert state.research_summary is not None, "Research summary required before proposal."
+    assert state.research_summary is not None, (
+        "Research summary required before proposal."
+    )
 
     issue = state.issue
     maintainer_username = await client.get_viewer_login()
     label_meta = await client.get_repository_labels(TARGET_REPO)
     repo_labels = [
-        {"name": (lbl.get("name") or ""), "description": (lbl.get("description") or "").strip()}
+        {
+            "name": (lbl.get("name") or ""),
+            "description": (lbl.get("description") or "").strip(),
+        }
         for lbl in label_meta
         if lbl.get("name")
     ]
@@ -254,11 +259,31 @@ def review_issue(state: State) -> ReviewDecision:
     proposal = state.proposal
 
     actions = [
-        {"name": "Close Issue", "value": proposal["close_issue"], "rationale": proposal.get("close_issue_rationale")},
-        {"name": "Add Labels", "value": proposal["add_labels"], "rationale": proposal.get("add_labels_rationale")},
-        {"name": "Remove Labels", "value": proposal["remove_labels"], "rationale": proposal.get("remove_labels_rationale")},
-        {"name": "Assign to Copilot", "value": proposal["assign_issue_to_copilot"], "rationale": proposal.get("assign_issue_to_copilot_rationale")},
-        {"name": "Post Comment", "value": proposal.get("post_comment"), "rationale": None},
+        {
+            "name": "Close Issue",
+            "value": proposal["close_issue"],
+            "rationale": proposal.get("close_issue_rationale"),
+        },
+        {
+            "name": "Add Labels",
+            "value": proposal["add_labels"],
+            "rationale": proposal.get("add_labels_rationale"),
+        },
+        {
+            "name": "Remove Labels",
+            "value": proposal["remove_labels"],
+            "rationale": proposal.get("remove_labels_rationale"),
+        },
+        {
+            "name": "Assign to Copilot",
+            "value": proposal["assign_issue_to_copilot"],
+            "rationale": proposal.get("assign_issue_to_copilot_rationale"),
+        },
+        {
+            "name": "Post Comment",
+            "value": proposal.get("post_comment"),
+            "rationale": None,
+        },
     ]
     rendered = _REVIEW_TEMPLATE_JINJA.render(
         number=issue["number"],
@@ -267,7 +292,7 @@ def review_issue(state: State) -> ReviewDecision:
         actions=actions,
         overall_rationale=proposal.get("rationale", ""),
     )
-    print(rendered)
+    print(rendered)  # noqa: T201
 
     while True:
         choice = input("[a]ccept  [e]dit  [s]kip  [q]uit: ").strip().lower()
@@ -296,20 +321,52 @@ def review_issue(state: State) -> ReviewDecision:
         elif choice == "q":
             sys.exit(0)
         elif choice == "e":
-            ci_raw = input(f"  Close issue [{proposal['close_issue']}] (y/n or blank to keep): ").strip().lower()
-            new_close = (ci_raw == "y") if ci_raw in ("y", "n") else proposal["close_issue"]
+            ci_raw = (
+                input(
+                    f"  Close issue [{proposal['close_issue']}] (y/n or blank to keep): "
+                )
+                .strip()
+                .lower()
+            )
+            new_close = (
+                (ci_raw == "y") if ci_raw in ("y", "n") else proposal["close_issue"]
+            )
 
-            al_raw = input(f"  Add labels [{', '.join(proposal['add_labels'])}] (comma-separated or blank to keep): ").strip()
-            new_add = [lbl.strip() for lbl in al_raw.split(",") if lbl.strip()] if al_raw else list(proposal["add_labels"])
+            al_raw = input(
+                f"  Add labels [{', '.join(proposal['add_labels'])}] (comma-separated or blank to keep): "
+            ).strip()
+            new_add = (
+                [lbl.strip() for lbl in al_raw.split(",") if lbl.strip()]
+                if al_raw
+                else list(proposal["add_labels"])
+            )
 
-            rl_raw = input(f"  Remove labels [{', '.join(proposal['remove_labels'])}] (comma-separated or blank to keep): ").strip()
-            new_remove = [lbl.strip() for lbl in rl_raw.split(",") if lbl.strip()] if rl_raw else list(proposal["remove_labels"])
+            rl_raw = input(
+                f"  Remove labels [{', '.join(proposal['remove_labels'])}] (comma-separated or blank to keep): "
+            ).strip()
+            new_remove = (
+                [lbl.strip() for lbl in rl_raw.split(",") if lbl.strip()]
+                if rl_raw
+                else list(proposal["remove_labels"])
+            )
 
-            cop_raw = input(f"  Assign to Copilot [{proposal['assign_issue_to_copilot']}] (y/n or blank to keep): ").strip().lower()
-            new_copilot = (cop_raw == "y") if cop_raw in ("y", "n") else proposal["assign_issue_to_copilot"]
+            cop_raw = (
+                input(
+                    f"  Assign to Copilot [{proposal['assign_issue_to_copilot']}] (y/n or blank to keep): "
+                )
+                .strip()
+                .lower()
+            )
+            new_copilot = (
+                (cop_raw == "y")
+                if cop_raw in ("y", "n")
+                else proposal["assign_issue_to_copilot"]
+            )
 
             current_comment = proposal.get("post_comment") or "(none)"
-            pc_raw = input(f"  Post comment [{current_comment}] (new text, 'none' to clear, blank to keep): ").strip()
+            pc_raw = input(
+                f"  Post comment [{current_comment}] (new text, 'none' to clear, blank to keep): "
+            ).strip()
             if pc_raw == "none":
                 new_comment: str | None = None
             elif pc_raw:
@@ -357,7 +414,10 @@ async def apply_decision(decision: ReviewDecision, client: GitHubClient) -> None
 async def run(state: State, client: GitHubClient) -> None:
     """Run the full pipeline: select → research → propose → review → apply."""
     await select_stale_issue(state, client)
-    await research_issue(state, active_issue_number=state.issue["number"], client=client)  # type: ignore[index]
+    assert state.issue is not None
+    await research_issue(
+        state, active_issue_number=state.issue["number"], client=client
+    )
     await propose_action(state, client)
     decision = review_issue(state)
     state.decision = dataclasses.asdict(decision)

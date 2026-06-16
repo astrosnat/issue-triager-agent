@@ -136,7 +136,9 @@ class TestResearchLoop:
         # Provide enough side_effects: N tool_calls + 1 summary (from forced final call)
         side_effects = [_TOOL_CALL, _TOOL_CALL, forced_summary]
         with patch("agent.claude_backend.call_claude", side_effect=side_effects):
-            result = await research_loop("sys", "user", {"search_issues": tool}, max_tool_calls=2)
+            result = await research_loop(
+                "sys", "user", {"search_issues": tool}, max_tool_calls=2
+            )
         assert isinstance(result, str)
         assert len(result) > 0
         assert tool.call_count == 2

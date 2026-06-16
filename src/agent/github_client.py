@@ -99,7 +99,9 @@ class GitHubClient:
         self._viewer_login: str | None = None  # cache for authenticated user login
         self._repo_labels_cache: dict[str, list[Dict[str, Any]]] = {}
 
-    async def get_repository_labels(self, repo: str, force_refresh: bool = False) -> list[Dict[str, Any]]:
+    async def get_repository_labels(
+        self, repo: str, force_refresh: bool = False
+    ) -> list[Dict[str, Any]]:
         """Return cached repository labels (list of dicts) for repo.
 
         Caches per-repo list on first fetch. Set force_refresh=True to refetch.
@@ -300,7 +302,9 @@ class GitHubClient:
             """
         await self._graphql(close_issue_mut, {"input": {"issueId": issue_id}})
 
-    async def assign_issue_to_copilot(self, repo: str, issue_number: int, copilot_login: str = "copilot-swe-agent") -> dict[str, Any]:
+    async def assign_issue_to_copilot(
+        self, repo: str, issue_number: int, copilot_login: str = "copilot-swe-agent"
+    ) -> dict[str, Any]:
         """Assign an existing issue to the GitHub Copilot agent bot.
 
         This uses the GraphQL API to:
@@ -331,16 +335,27 @@ class GitHubClient:
           }
         }
         """
-        data = await self._graphql(query, {"owner": owner, "name": name, "number": issue_number})
+        data = await self._graphql(
+            query, {"owner": owner, "name": name, "number": issue_number}
+        )
         repo_node = data.get("repository") if isinstance(data, dict) else None
         if not repo_node:
             raise RuntimeError(f"Repository {repo} not found")
-        issue = (repo_node.get("issue") if isinstance(repo_node, dict) else None) or None
+        issue = (
+            repo_node.get("issue") if isinstance(repo_node, dict) else None
+        ) or None
         if not issue:
             raise RuntimeError(f"Issue #{issue_number} not found in {repo}")
         issue_id = issue.get("id")
-        suggested = ((repo_node.get("suggestedActors") or {}).get("nodes") or []) if isinstance(repo_node, dict) else []
-        copilot_node = next((n for n in suggested if n.get("login") == copilot_login and n.get("id")), None)
+        suggested = (
+            ((repo_node.get("suggestedActors") or {}).get("nodes") or [])
+            if isinstance(repo_node, dict)
+            else []
+        )
+        copilot_node = next(
+            (n for n in suggested if n.get("login") == copilot_login and n.get("id")),
+            None,
+        )
 
         # If Copilot is not in suggested assignable actors, do a lightweight REST attempt before giving up.
         if not copilot_node:
@@ -349,7 +364,9 @@ class GitHubClient:
                 copilot_login,
                 repo,
             )
-            return await self._assign_issue_via_rest(repo, issue_number, copilot_login, issue.get("url"))
+            return await self._assign_issue_via_rest(
+                repo, issue_number, copilot_login, issue.get("url")
+            )
 
         # If the node is a Bot, GitHub currently rejects addAssigneesToAssignable with NOT_FOUND (expects User IDs).
         typename = copilot_node.get("__typename")
@@ -358,7 +375,9 @@ class GitHubClient:
                 "Suggested actor '%s' is a Bot; attempting REST fallback instead of GraphQL assignment.",
                 copilot_login,
             )
-            return await self._assign_issue_via_rest(repo, issue_number, copilot_login, issue.get("url"))
+            return await self._assign_issue_via_rest(
+                repo, issue_number, copilot_login, issue.get("url")
+            )
 
         mutation = """
         mutation($assignableId: ID!, $assigneeIds: [ID!]!) {
@@ -380,15 +399,36 @@ class GitHubClient:
                     "GraphQL assignment failed due to bot ID (NOT_FOUND). Falling back to REST: %s",
                     msg,
                 )
-                return await self._assign_issue_via_rest(repo, issue_number, copilot_login, issue.get("url"))
-            logging.error("Failed assigning Copilot to #%s in %s: %s", issue_number, repo, exc)
-            return {"number": issue.get("number"), "url": issue.get("url"), "assigned": False, "assignee_login": copilot_login, "reason": str(exc)}
-        assignable = ((add_res.get("addAssigneesToAssignable") or {}).get("assignable") if isinstance(add_res, dict) else None) or {}
+                return await self._assign_issue_via_rest(
+                    repo, issue_number, copilot_login, issue.get("url")
+                )
+            logging.error(
+                "Failed assigning Copilot to #%s in %s: %s", issue_number, repo, exc
+            )
+            return {
+                "number": issue.get("number"),
+                "url": issue.get("url"),
+                "assigned": False,
+                "assignee_login": copilot_login,
+                "reason": str(exc),
+            }
+        assignable = (
+            (add_res.get("addAssigneesToAssignable") or {}).get("assignable")
+            if isinstance(add_res, dict)
+            else None
+        ) or {}
         number = assignable.get("number", issue.get("number"))
         url = assignable.get("url", issue.get("url"))
-        return {"number": number, "url": url, "assigned": True, "assignee_login": copilot_login}
+        return {
+            "number": number,
+            "url": url,
+            "assigned": True,
+            "assignee_login": copilot_login,
+        }
 
-    async def _assign_issue_via_rest(self, repo: str, issue_number: int, login: str, issue_url: str | None) -> dict[str, Any]:
+    async def _assign_issue_via_rest(
+        self, repo: str, issue_number: int, login: str, issue_url: str | None
+    ) -> dict[str, Any]:
         """Fallback assignment using REST Issues API.
 
         GitHub currently may not allow assigning certain bot accounts via GraphQL (expects a User node ID),
@@ -398,9 +438,17 @@ class GitHubClient:
         url = f"https://api.github.com/repos/{owner}/{name}/issues/{issue_number}/assignees"
         async with httpx.AsyncClient(timeout=self.timeout) as client:
             try:
-                resp = await client.post(url, headers=self.headers, json={"assignees": [login]})
+                resp = await client.post(
+                    url, headers=self.headers, json={"assignees": [login]}
+                )
                 if resp.status_code in (201, 200):
-                    return {"number": issue_number, "url": issue_url, "assigned": True, "assignee_login": login, "via": "rest"}
+                    return {
+                        "number": issue_number,
+                        "url": issue_url,
+                        "assigned": True,
+                        "assignee_login": login,
+                        "via": "rest",
+                    }
                 # If unprocessable or not found, treat as not assignable.
                 logging.warning(
                     "REST assignment of %s to #%s in %s failed (%s): %s",
@@ -410,7 +458,14 @@ class GitHubClient:
                     resp.status_code,
                     resp.text,
                 )
-                return {"number": issue_number, "url": issue_url, "assigned": False, "assignee_login": login, "via": "rest", "reason": f"HTTP {resp.status_code}"}
+                return {
+                    "number": issue_number,
+                    "url": issue_url,
+                    "assigned": False,
+                    "assignee_login": login,
+                    "via": "rest",
+                    "reason": f"HTTP {resp.status_code}",
+                }
             except Exception as exc:  # noqa: BLE001
                 logging.warning(
                     "REST assignment exception for %s on #%s in %s: %s",
@@ -419,7 +474,14 @@ class GitHubClient:
                     repo,
                     exc,
                 )
-                return {"number": issue_number, "url": issue_url, "assigned": False, "assignee_login": login, "via": "rest", "reason": str(exc)}
+                return {
+                    "number": issue_number,
+                    "url": issue_url,
+                    "assigned": False,
+                    "assignee_login": login,
+                    "via": "rest",
+                    "reason": str(exc),
+                }
 
     async def add_label(self, repo: str, issue_number: int, label: str) -> None:
         """Add a label to an issue (creates if repository already has it)."""
@@ -796,7 +858,9 @@ class GitHubClient:
         page_size = min(50, max_results)
         pulls: List[Dict[str, Any]] = []
         while True and len(pulls) < max_results:
-            data = await self._graphql(search_q, {"q": q, "first": page_size, "after": after})
+            data = await self._graphql(
+                search_q, {"q": q, "first": page_size, "after": after}
+            )
             search = data["search"]
             for node in search["nodes"]:
                 # The SEARCH type ISSUE returns PullRequest and Issue union; filter PRs
@@ -823,17 +887,17 @@ class GitHubClient:
         ]
 
     async def get_pull_request(
-            self,
-            repo: str,
-            pr_number: int,
+        self,
+        repo: str,
+        pr_number: int,
     ) -> Dict[str, Any] | None:
-            """Fetch a single pull request by number, mirroring search_pull_requests fields.
+        """Fetch a single pull request by number, mirroring search_pull_requests fields.
 
-            Returns dict with keys: number, title, url, description, merged, mergedAt
-            or None if not found.
-            """
-            owner, name = self._split_repo(repo)
-            query = """
+        Returns dict with keys: number, title, url, description, merged, mergedAt
+        or None if not found.
+        """
+        owner, name = self._split_repo(repo)
+        query = """
             query($owner: String!, $name: String!, $number: Int!) {
                 repository(owner: $owner, name: $name) {
                     pullRequest(number: $number) {
@@ -842,24 +906,24 @@ class GitHubClient:
                 }
             }
             """
-            data = await self._graphql(
-                    query,
-                    {"owner": owner, "name": name, "number": pr_number},
-            )
-            repo_node = data.get("repository") if isinstance(data, dict) else None
-            if not repo_node:
-                    return None
-            pr = repo_node.get("pullRequest") if isinstance(repo_node, dict) else None
-            if not pr:
-                    return None
-            return {
-                    "number": pr.get("number"),
-                    "title": pr.get("title"),
-                    "url": pr.get("url"),
-                    "description": pr.get("body") or "",
-                    "merged": pr.get("merged"),
-                    "mergedAt": pr.get("mergedAt"),
-            }
+        data = await self._graphql(
+            query,
+            {"owner": owner, "name": name, "number": pr_number},
+        )
+        repo_node = data.get("repository") if isinstance(data, dict) else None
+        if not repo_node:
+            return None
+        pr = repo_node.get("pullRequest") if isinstance(repo_node, dict) else None
+        if not pr:
+            return None
+        return {
+            "number": pr.get("number"),
+            "title": pr.get("title"),
+            "url": pr.get("url"),
+            "description": pr.get("body") or "",
+            "merged": pr.get("merged"),
+            "mergedAt": pr.get("mergedAt"),
+        }
 
     async def search_codebase(
         self,
@@ -1030,7 +1094,9 @@ class GitHubClient:
         api_base = "https://api.github.com"
         async with httpx.AsyncClient(timeout=self.timeout) as client:
             if not ref:
-                repo_resp = await client.get(f"{api_base}/repos/{owner}/{name}", headers=headers)
+                repo_resp = await client.get(
+                    f"{api_base}/repos/{owner}/{name}", headers=headers
+                )
                 repo_resp.raise_for_status()
                 ref = repo_resp.json().get("default_branch") or "main"
 
@@ -1042,7 +1108,11 @@ class GitHubClient:
             tree_resp.raise_for_status()
             tree_json = tree_resp.json()
             truncated = bool(tree_json.get("truncated"))
-            paths: List[str] = [e.get("path") for e in tree_json.get("tree", []) if e.get("type") == "blob" and e.get("path")]
+            paths: List[str] = [
+                e.get("path")
+                for e in tree_json.get("tree", [])
+                if e.get("type") == "blob" and e.get("path")
+            ]
             if truncated:
                 logging.warning(
                     "Tree listing truncated for %s (ref=%s); results may be incomplete.",
@@ -1083,11 +1153,13 @@ class GitHubClient:
                 if not isinstance(batch, list):
                     break
                 for item in batch:
-                    labels.append({
-                        "name": item.get("name"),
-                        "description": (item.get("description") or "").strip(),
-                        "color": item.get("color") or "",
-                    })
+                    labels.append(
+                        {
+                            "name": item.get("name"),
+                            "description": (item.get("description") or "").strip(),
+                            "color": item.get("color") or "",
+                        }
+                    )
                     if max_labels is not None and len(labels) >= max_labels:
                         return labels
                 # Pagination: check Link header for rel="next"

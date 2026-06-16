@@ -8,7 +8,6 @@ T017: test_apply_decision — US3 GitHub write actions
 
 from __future__ import annotations
 
-from dataclasses import dataclass
 from typing import Any
 from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -22,7 +21,6 @@ from agent.triager import (
     research_issue,
     review_issue,
 )
-
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Fixtures
@@ -38,7 +36,11 @@ SAMPLE_ISSUE: dict[str, Any] = {
     "labels": ["bug", "stale"],
     "body": "When I submit an empty form the widget crashes.",
     "comments": [
-        {"author": "maintainer", "createdAt": "2024-01-02T00:00:00Z", "body": "Can you reproduce?"},
+        {
+            "author": "maintainer",
+            "createdAt": "2024-01-02T00:00:00Z",
+            "body": "Can you reproduce?",
+        },
     ],
 }
 
@@ -59,10 +61,12 @@ SAMPLE_PROPOSAL: dict[str, Any] = {
 def _mock_client() -> MagicMock:
     client = MagicMock()
     client.get_viewer_login = AsyncMock(return_value="maintainerbot")
-    client.get_repository_labels = AsyncMock(return_value=[
-        {"name": "bug", "description": "A bug", "color": "d73a4a"},
-        {"name": "stale", "description": "Stale issue", "color": "cfd3d7"},
-    ])
+    client.get_repository_labels = AsyncMock(
+        return_value=[
+            {"name": "bug", "description": "A bug", "color": "d73a4a"},
+            {"name": "stale", "description": "Stale issue", "color": "cfd3d7"},
+        ]
+    )
     return client
 
 
@@ -144,7 +148,9 @@ class TestProposeAction:
 
         state = State(issue=SAMPLE_ISSUE, research_summary="Stale.")
         client = _mock_client()
-        with patch("agent.triager.structured_output", return_value=SAMPLE_PROPOSAL) as mock_so:
+        with patch(
+            "agent.triager.structured_output", return_value=SAMPLE_PROPOSAL
+        ) as mock_so:
             await propose_action(state, client)
         mock_so.assert_called_once()
         _, schema_arg = mock_so.call_args[0]
@@ -237,7 +243,10 @@ class TestReviewIssue:
         assert decision.close_issue == SAMPLE_PROPOSAL["close_issue"]
         assert decision.add_labels == SAMPLE_PROPOSAL["add_labels"]
         assert decision.remove_labels == SAMPLE_PROPOSAL["remove_labels"]
-        assert decision.assign_issue_to_copilot == SAMPLE_PROPOSAL["assign_issue_to_copilot"]
+        assert (
+            decision.assign_issue_to_copilot
+            == SAMPLE_PROPOSAL["assign_issue_to_copilot"]
+        )
         assert decision.post_comment == SAMPLE_PROPOSAL["post_comment"]
 
 
@@ -248,7 +257,9 @@ class TestReviewIssue:
 
 class TestApplyDecision:
     async def test_approved_close_and_comment_calls_both(self):
-        decision = _sample_decision(approved=True, close_issue=True, post_comment="Closing.")
+        decision = _sample_decision(
+            approved=True, close_issue=True, post_comment="Closing."
+        )
         client = _apply_client()
         await apply_decision(decision, client)
         client.close_issue.assert_called_once()

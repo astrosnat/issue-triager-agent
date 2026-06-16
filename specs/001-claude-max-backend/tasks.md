@@ -180,10 +180,10 @@ description: "Task list template for feature implementation"
 
 ## Phase N: Polish & Cross-Cutting Concerns
 
-- [ ] T022 [P] Run `uv run -- ruff check .` and `uv run -- ruff format .` — fix all lint/format errors in `claude_backend.py`, `triager.py`, `main.py`
-- [ ] T023 [P] Run `uv run -- mypy src` — fix all type errors in new modules
-- [ ] T024 Run `uv run -- python -m pytest` — verify full test suite passes (unit + integration)
-- [ ] T025 [P] Update `CLAUDE.md` with correct run command (`uv run python src/agent/main.py`) and remove LangGraph server reference
+- [x] T022 [P] Run `uv run -- ruff check .` and `uv run -- ruff format .` — fix all lint/format errors in `claude_backend.py`, `triager.py`, `main.py`
+- [x] T023 [P] Run `uv run -- mypy src` — fix all type errors in new modules
+- [x] T024 Run `uv run -- python -m pytest` — verify full test suite passes (unit + integration)
+- [x] T025 [P] Update `CLAUDE.md` with correct run command (`uv run python src/agent/main.py`) and remove LangGraph server reference
 
 ---
 
