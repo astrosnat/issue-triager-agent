@@ -56,7 +56,7 @@ description: "Task list template for feature implementation"
 
 ### Implementation
 
-- [ ] T007 Implement `src/agent/claude_backend.py` to make T004–T006 pass:
+- [x] T007 Implement `src/agent/claude_backend.py` to make T004–T006 pass:
   - `ToolCall` and `ClaudeResponse` dataclasses (from data-model.md)
   - `call_claude(prompt: str, *, timeout: int = 120) -> str` (subprocess wrapper per contracts/claude-cli.md)
   - `research_loop(system_prompt: str, user_prompt: str, tools: dict[str, Callable], max_tool_calls: int = 4) -> str`
