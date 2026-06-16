@@ -1,50 +1,117 @@
-# [PROJECT_NAME] Constitution
-<!-- Example: Spec Constitution, TaskFlow Constitution, etc. -->
+<!--
+## Sync Impact Report
+
+**Version change**: (template) → 1.0.0
+**Modified principles**: N/A — initial ratification from template
+**Added sections**:
+  - Core Principles (5 principles)
+  - Technical Constraints
+  - Development Workflow
+  - Governance
+**Removed sections**: None
+**Templates requiring updates**:
+  - ✅ .specify/templates/plan-template.md — Constitution Check section already generic; no update needed
+  - ✅ .specify/templates/spec-template.md — No principle-specific references; no update needed
+  - ✅ .specify/templates/tasks-template.md — Task structure already aligns with principles; no update needed
+**Deferred TODOs**: None — all placeholders resolved
+-->
+
+# Issue Triager Agent Constitution
 
 ## Core Principles
 
-### [PRINCIPLE_1_NAME]
-<!-- Example: I. Library-First -->
-[PRINCIPLE_1_DESCRIPTION]
-<!-- Example: Every feature starts as a standalone library; Libraries must be self-contained, independently testable, documented; Clear purpose required - no organizational-only libraries -->
+### I. Human-in-the-Loop First (NON-NEGOTIABLE)
 
-### [PRINCIPLE_2_NAME]
-<!-- Example: II. CLI Interface -->
-[PRINCIPLE_2_DESCRIPTION]
-<!-- Example: Every library exposes functionality via CLI; Text in/out protocol: stdin/args → stdout, errors → stderr; Support JSON + human-readable formats -->
+The agent MUST interrupt and await human approval before taking any irreversible action
+on GitHub: posting closing comments, applying labels, or closing issues. Autonomous
+destructive actions are prohibited. The interrupt/review cycle via Agent Inbox is not
+optional and MUST NOT be bypassed in any code path.
 
-### [PRINCIPLE_3_NAME]
-<!-- Example: III. Test-First (NON-NEGOTIABLE) -->
-[PRINCIPLE_3_DESCRIPTION]
-<!-- Example: TDD mandatory: Tests written → User approved → Tests fail → Then implement; Red-Green-Refactor cycle strictly enforced -->
+**Rationale**: False positives in issue triage cause real harm to open-source contributors.
+Human review is the primary safety gate.
 
-### [PRINCIPLE_4_NAME]
-<!-- Example: IV. Integration Testing -->
-[PRINCIPLE_4_DESCRIPTION]
-<!-- Example: Focus areas requiring integration tests: New library contract tests, Contract changes, Inter-service communication, Shared schemas -->
+### II. Responsible Automation
 
-### [PRINCIPLE_5_NAME]
-<!-- Example: V. Observability, VI. Versioning & Breaking Changes, VII. Simplicity -->
-[PRINCIPLE_5_DESCRIPTION]
-<!-- Example: Text I/O ensures debuggability; Structured logging required; Or: MAJOR.MINOR.BUILD format; Or: Start simple, YAGNI principles -->
+The agent MUST minimize false positives. When uncertain whether an issue is truly stale,
+the agent MUST surface uncertainty in its proposal rather than guess confidently. The agent
+MUST NOT take action on issues that have recent activity, open PRs, or clear ongoing
+discussion without explicit human override.
 
-## [SECTION_2_NAME]
-<!-- Example: Additional Constraints, Security Requirements, Performance Standards, etc. -->
+**Rationale**: Trust in the system depends on accuracy. One bad close erodes user confidence
+more than ten missed stale issues.
 
-[SECTION_2_CONTENT]
-<!-- Example: Technology stack requirements, compliance standards, deployment policies, etc. -->
+### III. Test-First Development
 
-## [SECTION_3_NAME]
-<!-- Example: Development Workflow, Review Process, Quality Gates, etc. -->
+Tests MUST be written before implementation code. The red-green-refactor cycle is
+mandatory. Tests MUST fail before implementation begins. `uv run python -m pytest` MUST
+pass before any PR is merged. Contract tests for GitHub API interactions and integration
+tests for graph behavior are required for new agent capabilities.
 
-[SECTION_3_CONTENT]
-<!-- Example: Code review requirements, testing gates, deployment approval process, etc. -->
+**Rationale**: Agent behavior is hard to inspect at runtime; tests are the primary
+correctness signal.
+
+### IV. Observability
+
+LangSmith tracing MUST be enabled in all non-test environments. All graph nodes MUST
+emit structured log output sufficient to reconstruct a run post-hoc. Errors from GitHub
+API calls, LLM calls, or tool invocations MUST be surfaced with enough context to
+diagnose without rerunning.
+
+**Rationale**: Agentic systems fail in non-obvious ways. Observability is not optional
+overhead — it is the debugging interface.
+
+### V. Simplicity and Single Purpose
+
+The agent does one thing: triage stale GitHub issues for a target repository. Features
+MUST NOT be added that expand scope beyond this purpose without amending this
+constitution. YAGNI applies strictly. Complexity MUST be justified against a concrete
+need, not anticipated future use.
+
+**Rationale**: Scope creep in agentic systems compounds: each new capability adds new
+failure modes and new surface area for human-in-the-loop gaps.
+
+## Technical Constraints
+
+- **Runtime**: Python 3.11+, managed via `uv`
+- **Agent framework**: LangGraph (graph ID: `agent`)
+- **LLM**: Azure OpenAI (configured via `azd provision` + `.env`)
+- **GitHub access**: Personal access token with `repo` scope required; stored in `GITHUB_TOKEN`
+- **Tracing**: LangSmith required for Agent Inbox integration (`LANGSMITH_TRACING=true`)
+- **Default target**: `Azure-samples/azure-search-openai-demo` (overridable via `TARGET_REPO`)
+- **Agent Inbox**: Local submodule at `agent-inbox/`; runs on `http://localhost:3000`
+
+All credentials MUST be stored in `.env` (git-ignored). No secrets in source code or
+committed configuration.
+
+## Development Workflow
+
+- **Install deps**: `uv sync`
+- **Run agent locally**: `uvx --from "langgraph-cli[inmem]" --with-editable . langgraph dev --allow-blocking`
+- **Run tests**: `uv run -- python -m pytest`
+- **Lint**: `uv run -- ruff check .`
+- **Format**: `uv run -- ruff format .`
+- **Type check**: `uv run -- mypy src`
+
+All four quality gates (tests, lint, format, type check) MUST pass before merging.
+PRs MUST include a description of how the human-in-the-loop path was verified.
 
 ## Governance
-<!-- Example: Constitution supersedes all other practices; Amendments require documentation, approval, migration plan -->
 
-[GOVERNANCE_RULES]
-<!-- Example: All PRs/reviews must verify compliance; Complexity must be justified; Use [GUIDANCE_FILE] for runtime development guidance -->
+This constitution supersedes all other stated practices, conventions, or informal
+agreements. Amendments MUST:
 
-**Version**: [CONSTITUTION_VERSION] | **Ratified**: [RATIFICATION_DATE] | **Last Amended**: [LAST_AMENDED_DATE]
-<!-- Example: Version: 2.1.1 | Ratified: 2025-06-13 | Last Amended: 2025-07-16 -->
+1. Be proposed as a PR modifying this file
+2. Include a version bump per semantic versioning (see below)
+3. Include a migration plan if any principle is removed or redefined
+4. Be reviewed by at least one maintainer before merge
+
+**Versioning policy**:
+- MAJOR: Principle removed, redefined in a backward-incompatible way, or governance restructured
+- MINOR: New principle or section added, or existing principle materially expanded
+- PATCH: Clarifications, wording fixes, non-semantic refinements
+
+All PRs and code reviews MUST verify compliance with Principle I (human-in-the-loop)
+as the primary gate. Violations of Principle I are blocking; violations of other
+principles require documented justification in the PR.
+
+**Version**: 1.0.0 | **Ratified**: 2026-06-16 | **Last Amended**: 2026-06-16
