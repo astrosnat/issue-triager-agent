@@ -76,26 +76,26 @@ description: "Task list template for feature implementation"
 
 > **NOTE: Write these tests FIRST, ensure they FAIL before implementing `triager.py`**
 
-- [ ] T008 [P] [US1] Write failing integration test for `research_issue()` in `tests/integration/test_triager.py`:
+- [x] T008 [P] [US1] Write failing integration test for `research_issue()` in `tests/integration/test_triager.py`:
   fixture: mock `GitHubClient` returning a sample issue dict;
   mock `claude_backend.research_loop` returning a research summary string;
   assert `state.research_summary` is set and non-empty
-- [ ] T009 [P] [US1] Write failing integration test for `propose_action()` in `tests/integration/test_triager.py`:
+- [x] T009 [P] [US1] Write failing integration test for `propose_action()` in `tests/integration/test_triager.py`:
   fixture: State with issue + research_summary;
   mock `claude_backend.structured_output` returning valid ProposalModel JSON dict;
   assert `state.proposal` contains expected fields (`close_issue`, `rationale`, etc.)
 
 ### Implementation for User Story 1
 
-- [ ] T010 [US1] Update `src/agent/research_prompt.md.jinja2` — prepend tool-call JSON protocol block at top:
+- [x] T010 [US1] Update `src/agent/research_prompt.md.jinja2` — prepend tool-call JSON protocol block at top:
   Shape A (`{"type":"tool_call","tool":"...","args":{...}}`),
   Shape B (`{"type":"final_answer","content":"..."}`),
   available tool descriptions in structured list;
   keep existing research instructions below the protocol block
-- [ ] T011 [US1] Update `src/agent/propose_action_prompt.md.jinja2` — prepend two-line header:
+- [x] T011 [US1] Update `src/agent/propose_action_prompt.md.jinja2` — prepend two-line header:
   `"Respond ONLY with a valid JSON object. No markdown, no explanation."` and
   `"Schema: {{ schema_json }}"` (Jinja2 variable injected from `ProposalModel.model_json_schema()`)
-- [ ] T012 [US1] Create `src/agent/triager.py` with:
+- [x] T012 [US1] Create `src/agent/triager.py` with:
   - `State` dataclass (same fields as existing in graph.py)
   - `ProposalModel` Pydantic model (moved from graph.py)
   - `TOOLS: dict[str, Callable]` registry (7 GitHub tools, same signatures as current graph.py `@tool` functions but plain `async def`)
@@ -103,7 +103,7 @@ description: "Task list template for feature implementation"
   - `research_issue(state: State, active_issue_number: int) -> None` (calls `claude_backend.research_loop`)
   - `propose_action(state: State, client: GitHubClient) -> None` (calls `claude_backend.structured_output`)
   - `run(state: State, client: GitHubClient) -> None` stub (wires phases together, calls review later)
-- [ ] T013 [US1] Remove `src/agent/graph.py` (delete file) — all logic is now in `triager.py` and `claude_backend.py`
+- [x] T013 [US1] Remove `src/agent/graph.py` (delete file) — all logic is now in `triager.py` and `claude_backend.py`
 
 **Checkpoint**: `uv run python -m pytest tests/integration/test_triager.py::test_research_issue tests/integration/test_triager.py::test_propose_action` — pass → US1 independently functional
 

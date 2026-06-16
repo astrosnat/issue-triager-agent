@@ -34,4 +34,13 @@ Available repository labels (name – description, blank description means none 
 {% else %}(No labels fetched; if empty, you should avoid suggesting label changes.)
 {% endif %}
 
-Return only JSON that matches the structured output schema. Do not include extraneous commentary outside schema fields.
+---
+
+Issue number: {{ issue_number }}
+Title: {{ title }}
+URL: {{ url }}
+UpdatedAt: {{ updated_at }}
+Labels: {{ labels }}
+
+Research summary:
+{{ research_summary }}
