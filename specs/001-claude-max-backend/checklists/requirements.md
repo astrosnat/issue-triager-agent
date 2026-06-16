@@ -13,7 +13,7 @@
 
 ## Requirement Completeness
 
-- [ ] No [NEEDS CLARIFICATION] markers remain — FR-008 pending user response
+- [x] No [NEEDS CLARIFICATION] markers remain — FR-008 resolved: alternative review UI accepted
 - [x] Requirements are testable and unambiguous
 - [x] Success criteria are measurable
 - [x] Success criteria are technology-agnostic (no implementation details)
@@ -31,5 +31,4 @@
 
 ## Notes
 
-- FR-008 requires user clarification before spec is 100% complete.
-  All other items pass. Spec is ready for `/speckit.plan` once FR-008 is resolved.
+- All items resolved. Spec is ready for `/speckit.plan`.

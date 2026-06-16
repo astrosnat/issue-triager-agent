@@ -122,10 +122,10 @@ correct action (or no action) is applied accordingly.
   the existing `TARGET_REPO` mechanism.
 - **FR-007**: System MUST continue to produce triage proposals of equivalent quality to
   the Azure OpenAI version (same reasoning, same output structure).
-- **FR-008**: [NEEDS CLARIFICATION: Should the LangSmith / Agent Inbox review interface
-  be preserved, or is an alternative human-in-the-loop UI acceptable if LangGraph is
-  replaced? Preserving it requires LangSmith credentials (a separate service); replacing
-  it could simplify setup further but changes the review UX.]
+- **FR-008**: An alternative human-in-the-loop review interface is acceptable. The Agent
+  Inbox / LangSmith dependency is NOT required. The architecture may change freely (e.g.,
+  away from LangGraph) provided the human review gate (FR-003) is preserved through
+  another mechanism. Simpler setup is preferred over UI continuity.
 
 ### Key Entities
 
