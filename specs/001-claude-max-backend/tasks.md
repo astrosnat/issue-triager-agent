@@ -39,17 +39,17 @@ description: "Task list template for feature implementation"
 
 > **NOTE: Write these tests FIRST, ensure they FAIL before implementing `claude_backend.py`**
 
-- [ ] T004 [P] Write failing unit tests for `call_claude()` in `tests/unit/test_claude_backend.py`:
+- [x] T004 [P] Write failing unit tests for `call_claude()` in `tests/unit/test_claude_backend.py`:
   test successful response (mock `subprocess.run` returning exit 0 + stdout text);
   test auth error (exit 1 + stderr "not authenticated" → RuntimeError with re-auth message);
   test timeout (`TimeoutExpired` → RuntimeError);
   test binary not found (`FileNotFoundError` propagated)
-- [ ] T005 [P] Write failing unit tests for `research_loop()` in `tests/unit/test_claude_backend.py`:
+- [x] T005 [P] Write failing unit tests for `research_loop()` in `tests/unit/test_claude_backend.py`:
   test tool_call parse and dispatch (mock returns Shape A JSON → tool called → next call receives result);
   test final_answer parse (mock returns Shape B JSON → loop exits, content returned);
   test max-tool-calls limit (mock always returns tool_call → loop stops at 4 calls, forces final answer);
   test JSON parse failure degrades to final_answer (raw text returned as summary)
-- [ ] T006 [P] Write failing unit tests for `structured_output()` in `tests/unit/test_claude_backend.py`:
+- [x] T006 [P] Write failing unit tests for `structured_output()` in `tests/unit/test_claude_backend.py`:
   test valid JSON matching ProposalModel schema → model validates;
   test first call invalid JSON, second call valid JSON → succeeds on retry;
   test both calls invalid JSON → raises RuntimeError("Claude structured output failed after 2 attempts")
