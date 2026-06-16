@@ -155,7 +155,7 @@ class GitHubClient:
     async def find_stale_open_issues(
         self,
         repo: str,
-        max_results: int = 5,
+        max_results: int = 100,
     ) -> List[IssueItem]:
         """Find open stale issues, sorted by last update date."""
         owner, name = self._split_repo(repo)
