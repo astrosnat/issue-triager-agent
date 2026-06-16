@@ -159,7 +159,7 @@ class GitHubClient:
     ) -> List[IssueItem]:
         """Find open stale issues, sorted by last update date."""
         owner, name = self._split_repo(repo)
-        q = f"repo:{owner}/{name} is:issue is:open sort:updated-desc label:Stale"
+        q = f"repo:{owner}/{name} is:issue is:open sort:updated-asc"
         query = """
         query($q: String!, $first: Int!, $after: String) {
           search(query: $q, type: ISSUE, first: $first, after: $after) {
